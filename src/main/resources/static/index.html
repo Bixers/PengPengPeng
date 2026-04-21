@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>碰碰砰</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #0c6b6a 0%, #084943 100%);
+      color: #ecfff9;
+      font-family: "Microsoft YaHei", sans-serif;
+    }
+    .card {
+      width: min(92vw, 560px);
+      padding: 28px;
+      border-radius: 24px;
+      background: rgba(8, 34, 31, 0.38);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(8px);
+    }
+    h1 { margin: 0 0 12px; font-size: 36px; }
+    p { line-height: 1.7; opacity: 0.92; }
+    .tag {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      font-size: 12px;
+    }
+    code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>碰碰砰</h1>
+    <p>微信小游戏风格的两关麻将消除项目，后端使用 Spring Boot + MyBatis，数据库为 MySQL。</p>
+    <p>可用接口：</p>
+    <p><code>/health</code> <code>/api/game/config</code> <code>/api/game/rankings</code> <code>/api/game/records</code></p>
+    <div class="tag">WeChat Cloud Run Ready</div>
+  </main>
+</body>
+</html>

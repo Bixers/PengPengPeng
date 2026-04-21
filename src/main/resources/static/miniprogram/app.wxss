@@ -1,0 +1,27 @@
+page {
+  width: 100%;
+  min-height: 100%;
+  background: linear-gradient(180deg, #0d6f6a 0%, #08433f 100%);
+  color: #ecfff9;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.glass-card {
+  background: rgba(10, 37, 34, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(10px);
+}
+
+.primary-btn {
+  border: none;
+  color: #0d4d49;
+  background: linear-gradient(180deg, #f8f4e9 0%, #d8cfc0 100%);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+.ghost-btn {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #effff9;
+  background: rgba(255, 255, 255, 0.08);
+}

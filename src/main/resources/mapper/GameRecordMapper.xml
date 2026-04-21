@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tencent.wxcloudrun.dao.GameRecordMapper">
+
+  <resultMap id="GameRecordMap" type="com.tencent.wxcloudrun.model.GameRecord">
+    <id column="id" property="id"/>
+    <result column="nickname" property="nickname"/>
+    <result column="score" property="score"/>
+    <result column="cleared" property="cleared"/>
+    <result column="level_reached" property="levelReached"/>
+    <result column="elapsed_seconds" property="elapsedSeconds"/>
+    <result column="created_at" property="createdAt"/>
+  </resultMap>
+
+  <insert id="insert" parameterType="com.tencent.wxcloudrun.model.GameRecord" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO game_records (nickname, score, cleared, level_reached, elapsed_seconds)
+    VALUES (#{nickname}, #{score}, #{cleared}, #{levelReached}, #{elapsedSeconds})
+  </insert>
+
+  <select id="selectTop" resultMap="GameRecordMap">
+    SELECT id, nickname, score, cleared, level_reached, elapsed_seconds, created_at
+    FROM game_records
+    ORDER BY score DESC, level_reached DESC, elapsed_seconds ASC, created_at DESC
+    LIMIT #{limit}
+  </select>
+</mapper>
