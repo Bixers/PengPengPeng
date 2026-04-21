@@ -18,6 +18,7 @@ const state = {
   dragState: null,
   dragAnimation: null,
   gameFinished: false,
+  shufflePrompt: null,
   resultTitle: '',
   resultDesc: ''
 };
@@ -30,6 +31,7 @@ let dpr = 1;
 let timer = null;
 let rafHandle = null;
 let touchTarget = null;
+let shuffleTimer = null;
 
 function init() {
   canvas = wx.createCanvas();
@@ -81,8 +83,10 @@ function startGame() {
   state.hintKeys = [];
   state.dragState = null;
   state.dragAnimation = null;
+  state.shufflePrompt = null;
   state.resultTitle = '';
   state.resultDesc = '';
+  clearShuffleTimer();
   startLevel(0, true);
 }
 
@@ -94,6 +98,7 @@ function startLevel(levelIndex, requireAdjacentPair) {
   state.hintKeys = [];
   state.dragState = null;
   state.dragAnimation = null;
+  state.shufflePrompt = null;
   recalcLayout();
 }
 
@@ -146,6 +151,7 @@ function render() {
   drawHeader();
   drawBoard();
   drawActions();
+  drawPrompt();
   if (state.gameFinished) {
     drawOverlay();
   }
@@ -262,6 +268,29 @@ function drawOverlay() {
   ctx.restore();
 }
 
+function drawPrompt() {
+  if (!state.shufflePrompt) {
+    return;
+  }
+  const prompt = state.shufflePrompt;
+  const boxWidth = Math.min(width - 60, 300);
+  const boxHeight = 110;
+  const x = (width - boxWidth) / 2;
+  const y = height / 2 - 55;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.42)';
+  ctx.fillRect(0, 0, width, height);
+  roundRect(ctx, x, y, boxWidth, boxHeight, 20, 'rgba(10,37,34,0.95)', 'rgba(255,255,255,0.14)');
+  ctx.fillStyle = '#ecfff9';
+  ctx.font = 'bold 24px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(prompt.title, width / 2, y + 38);
+  ctx.font = '16px sans-serif';
+  ctx.fillText(prompt.desc, width / 2, y + 72);
+  ctx.restore();
+}
+
 function formatTime(seconds) {
   const minute = Math.floor(seconds / 60);
   const second = seconds % 60;
@@ -310,6 +339,9 @@ function getTileAtPoint(x, y) {
 function handleTouchStart(e) {
   const touch = firstTouch(e);
   if (!touch) {
+    return;
+  }
+  if (state.shufflePrompt) {
     return;
   }
   if (state.gameFinished) {
@@ -417,10 +449,7 @@ function hitActionButton(x, y) {
 
 function performAction(action) {
   if (action === 'shuffle') {
-    boardUtils.shuffleBoard(state.board, false);
-    state.selectedKey = '';
-    state.hintKeys = [];
-    ensurePlayable();
+    shuffleBoardWithPrompt(false);
     return;
   }
   if (action === 'hint') {
@@ -623,9 +652,47 @@ function ensurePlayable() {
     return;
   }
   if (!boardUtils.hasAnyMove(state.board)) {
-    boardUtils.shuffleBoard(state.board, false);
+    scheduleShufflePrompt();
+  }
+}
+
+function scheduleShufflePrompt() {
+  if (state.shufflePrompt) {
+    return;
+  }
+  state.shufflePrompt = {
+    title: '无可消除',
+    desc: '正在重新打乱...'
+  };
+  clearShuffleTimer();
+  shuffleTimer = setTimeout(() => {
+    shuffleBoardWithPrompt(true);
+  }, 700);
+}
+
+function clearShuffleTimer() {
+  if (shuffleTimer) {
+    clearTimeout(shuffleTimer);
+    shuffleTimer = null;
+  }
+}
+
+function shuffleBoardWithPrompt(requireAdjacentPair) {
+  clearShuffleTimer();
+  state.shufflePrompt = null;
+  state.selectedKey = '';
+  state.hintKeys = [];
+  let ok = false;
+  for (let i = 0; i < 200; i += 1) {
+    ok = boardUtils.shuffleBoard(state.board, requireAdjacentPair);
+    if (ok && boardUtils.hasAnyMove(state.board)) {
+      break;
+    }
+  }
+  if (!ok || !boardUtils.hasAnyMove(state.board)) {
+    boardUtils.ensureAdjacentPair(state.board);
     if (!boardUtils.hasAnyMove(state.board)) {
-      boardUtils.ensureAdjacentPair(state.board);
+      scheduleShufflePrompt();
     }
   }
 }
@@ -684,6 +751,7 @@ function advanceLevel() {
 
 function finishGame(cleared, reason) {
   state.gameFinished = true;
+  clearShuffleTimer();
   stopTimer();
   if (cleared) {
     state.score += Math.max(0, state.timeLeft * 2);
