@@ -468,7 +468,7 @@ function handleTap(row, col, key) {
 
 function handleDrag(drag, plan) {
   const previewBoard = boardUtils.cloneBoard(state.board);
-  const moved = boardUtils.shiftLine(previewBoard, drag.row, drag.col, plan.axis, plan.step);
+  const moved = boardUtils.shiftLine(previewBoard, drag.row, drag.col, plan.axis, plan.step, plan.steps);
   state.selectedKey = '';
   if (!moved) {
     ensurePlayable();
@@ -476,7 +476,7 @@ function handleDrag(drag, plan) {
   }
   const match = boardUtils.findLinePair(previewBoard, moved.row, moved.col, plan.axis);
   if (match && match.type === moved.type) {
-    boardUtils.shiftLine(state.board, drag.row, drag.col, plan.axis, plan.step);
+    boardUtils.shiftLine(state.board, drag.row, drag.col, plan.axis, plan.step, plan.steps);
     removePair({ key: drag.key }, { key: match.key });
     return;
   }
@@ -510,11 +510,15 @@ function buildDragPlan(drag) {
   const step = primaryDelta > 0 ? 1 : -1;
   const distance = Math.min(Math.abs(primaryDelta), state.tileSize);
   const previewOffset = distance * step;
+  const freeSteps = boardUtils.countFreeSteps(state.board, drag.row, drag.col, step, axis);
+  const rawSteps = Math.max(1, Math.round(Math.abs(primaryDelta) / state.tileSize));
+  const steps = Math.max(1, Math.min(freeSteps, rawSteps));
   const emptyIndex = boardUtils.findFirstEmptyInDirection(state.board, drag.row, drag.col, step, axis);
-  const autoPair = detectDragPair(drag, axis, step);
+  const autoPair = detectDragPair(drag, axis, step, steps);
   return {
     axis,
     step,
+    steps,
     previewOffset,
     emptyIndex,
     autoPair
@@ -528,14 +532,15 @@ function updateDragPreview() {
   const plan = buildDragPlan(state.dragState);
   state.dragState.axis = plan.axis;
   state.dragState.step = plan.step;
+  state.dragState.steps = plan.steps;
   state.dragState.previewOffset = plan.previewOffset;
   state.dragState.emptyIndex = plan.emptyIndex;
   state.dragState.autoPair = plan.autoPair;
 }
 
-function detectDragPair(drag, axis, step) {
+function detectDragPair(drag, axis, step, steps) {
   const previewBoard = boardUtils.cloneBoard(state.board);
-  const moved = boardUtils.shiftLine(previewBoard, drag.row, drag.col, axis, step);
+  const moved = boardUtils.shiftLine(previewBoard, drag.row, drag.col, axis, step, steps);
   if (!moved) {
     return null;
   }

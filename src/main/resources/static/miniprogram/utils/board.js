@@ -317,7 +317,31 @@ function findFirstEmptyInDirection(board, row, col, step, axis) {
   return -1;
 }
 
-function shiftLine(board, row, col, axis, step) {
+function countFreeSteps(board, row, col, step, axis) {
+  let count = 0;
+  if (axis === 'horizontal') {
+    let cursor = col + step;
+    while (cursor >= 0 && cursor < board[0].length) {
+      if (board[row][cursor]) {
+        break;
+      }
+      count += 1;
+      cursor += step;
+    }
+    return count;
+  }
+  let cursor = row + step;
+  while (cursor >= 0 && cursor < board.length) {
+    if (board[cursor][col]) {
+      break;
+    }
+    count += 1;
+    cursor += step;
+  }
+  return count;
+}
+
+function shiftOneStep(board, row, col, axis, step) {
   const empty = findFirstEmptyInDirection(board, row, col, step, axis);
   if (empty === -1) {
     return null;
@@ -341,6 +365,24 @@ function shiftLine(board, row, col, axis, step) {
   board[row][col] = null;
   const moved = board[row + step][col];
   syncPosition(moved, row + step, col);
+  return moved;
+}
+
+function shiftLine(board, row, col, axis, step, count) {
+  let currentRow = row;
+  let currentCol = col;
+  let moved = null;
+  const steps = Math.max(1, count || 1);
+
+  for (let i = 0; i < steps; i += 1) {
+    moved = shiftOneStep(board, currentRow, currentCol, axis, step);
+    if (!moved) {
+      return null;
+    }
+    currentRow = moved.row;
+    currentCol = moved.col;
+  }
+
   return moved;
 }
 
@@ -376,6 +418,7 @@ module.exports = {
   findFirstEmptyInDirection,
   findLinePair,
   findTapPair,
+  countFreeSteps,
   flatten,
   hasAdjacentPair,
   hasAnyMove,
