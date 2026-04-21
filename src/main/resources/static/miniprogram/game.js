@@ -16,6 +16,7 @@ const state = {
   selectedKey: '',
   hintKeys: [],
   dragState: null,
+  dragAnimation: null,
   gameFinished: false,
   resultTitle: '',
   resultDesc: ''
@@ -78,6 +79,8 @@ function startGame() {
   state.gameFinished = false;
   state.selectedKey = '';
   state.hintKeys = [];
+  state.dragState = null;
+  state.dragAnimation = null;
   state.resultTitle = '';
   state.resultDesc = '';
   startLevel(0, true);
@@ -89,6 +92,8 @@ function startLevel(levelIndex, requireAdjacentPair) {
   state.board = boardUtils.createBoard(level.rows, level.cols, level.uniqueTypes, requireAdjacentPair);
   state.selectedKey = '';
   state.hintKeys = [];
+  state.dragState = null;
+  state.dragAnimation = null;
   recalcLayout();
 }
 
@@ -135,6 +140,7 @@ function loop() {
 }
 
 function render() {
+  updateDragAnimation();
   ctx.clearRect(0, 0, width, height);
   drawBackground();
   drawHeader();
@@ -197,7 +203,8 @@ function drawBoard() {
       const tileSize = state.tileSize - 6;
       const highlighted = state.hintKeys.indexOf(tile.key) !== -1;
       const selected = tile.key === state.selectedKey;
-      drawTile(cellX, cellY, tileSize, tile, highlighted, selected);
+      const offset = getTileOffset(tile);
+      drawTile(cellX + offset.dx, cellY + offset.dy, tileSize, tile, highlighted, selected);
     }
   }
 }
@@ -331,6 +338,7 @@ function handleTouchStart(e) {
     dy: 0,
     moved: false
   };
+  state.dragAnimation = null;
   state.hintKeys = [];
 }
 
@@ -347,6 +355,7 @@ function handleTouchMove(e) {
   if (Math.abs(state.dragState.dx) > 8 || Math.abs(state.dragState.dy) > 8) {
     state.dragState.moved = true;
   }
+  updateDragPreview();
 }
 
 function handleTouchEnd(e) {
@@ -362,12 +371,19 @@ function handleTouchEnd(e) {
     return;
   }
   const drag = state.dragState;
-  state.dragState = null;
   if (!drag.moved) {
+    state.dragState = null;
     handleTap(drag.row, drag.col, drag.key);
     return;
   }
-  handleDrag(drag);
+  const plan = buildDragPlan(drag);
+  if (!plan || plan.previewOffset < state.tileSize * 0.35) {
+    startDragReturnAnimation();
+    return;
+  }
+  state.dragState = null;
+  state.dragAnimation = null;
+  handleDrag(drag, plan);
 }
 
 function firstTouch(e) {
@@ -446,23 +462,21 @@ function handleTap(row, col, key) {
   state.selectedKey = key;
 }
 
-function handleDrag(drag) {
-  const absX = Math.abs(drag.dx);
-  const absY = Math.abs(drag.dy);
-  const axis = absX >= absY ? 'horizontal' : 'vertical';
-  const step = axis === 'horizontal' ? (drag.dx > 0 ? 1 : -1) : (drag.dy > 0 ? 1 : -1);
-  const moved = boardUtils.shiftLine(state.board, drag.row, drag.col, axis, step);
+function handleDrag(drag, plan) {
+  const previewBoard = boardUtils.cloneBoard(state.board);
+  const moved = boardUtils.shiftLine(previewBoard, drag.row, drag.col, plan.axis, plan.step);
   state.selectedKey = '';
   if (!moved) {
     ensurePlayable();
     return;
   }
-  const match = boardUtils.findLinePair(state.board, moved.row, moved.col, axis);
+  const match = boardUtils.findLinePair(previewBoard, moved.row, moved.col, plan.axis);
   if (match && match.type === moved.type) {
+    boardUtils.shiftLine(state.board, drag.row, drag.col, plan.axis, plan.step);
     removePair(moved, match);
     return;
   }
-  ensurePlayable();
+  startDragReturnAnimation();
 }
 
 function removePair(a, b) {
@@ -482,6 +496,98 @@ function afterBoardChange() {
     return;
   }
   ensurePlayable();
+}
+
+function buildDragPlan(drag) {
+  const absX = Math.abs(drag.dx);
+  const absY = Math.abs(drag.dy);
+  const axis = absX >= absY ? 'horizontal' : 'vertical';
+  const primaryDelta = axis === 'horizontal' ? drag.dx : drag.dy;
+  const step = primaryDelta > 0 ? 1 : -1;
+  const distance = Math.min(Math.abs(primaryDelta), state.tileSize);
+  const previewOffset = distance * step;
+  const emptyIndex = boardUtils.findFirstEmptyInDirection(state.board, drag.row, drag.col, step, axis);
+  return {
+    axis,
+    step,
+    previewOffset,
+    emptyIndex
+  };
+}
+
+function updateDragPreview() {
+  if (!state.dragState) {
+    return;
+  }
+  const plan = buildDragPlan(state.dragState);
+  state.dragState.axis = plan.axis;
+  state.dragState.step = plan.step;
+  state.dragState.previewOffset = plan.previewOffset;
+  state.dragState.emptyIndex = plan.emptyIndex;
+}
+
+function getTileOffset(tile) {
+  const drag = state.dragState;
+  if (!drag || !drag.previewOffset) {
+    return { dx: 0, dy: 0 };
+  }
+
+  const offset = drag.previewOffset;
+  if (drag.axis === 'horizontal') {
+    if (tile.row !== drag.row) {
+      return { dx: 0, dy: 0 };
+    }
+    if (drag.emptyIndex === -1) {
+      return tile.key === drag.key ? { dx: offset, dy: 0 } : { dx: 0, dy: 0 };
+    }
+    if (drag.step > 0 && tile.col >= drag.col && tile.col < drag.emptyIndex) {
+      return { dx: offset, dy: 0 };
+    }
+    if (drag.step < 0 && tile.col <= drag.col && tile.col > drag.emptyIndex) {
+      return { dx: offset, dy: 0 };
+    }
+    return { dx: 0, dy: 0 };
+  }
+
+  if (tile.col !== drag.col) {
+    return { dx: 0, dy: 0 };
+  }
+  if (drag.emptyIndex === -1) {
+    return tile.key === drag.key ? { dx: 0, dy: offset } : { dx: 0, dy: 0 };
+  }
+  if (drag.step > 0 && tile.row >= drag.row && tile.row < drag.emptyIndex) {
+    return { dx: 0, dy: offset };
+  }
+  if (drag.step < 0 && tile.row <= drag.row && tile.row > drag.emptyIndex) {
+    return { dx: 0, dy: offset };
+  }
+  return { dx: 0, dy: 0 };
+}
+
+function startDragReturnAnimation() {
+  if (!state.dragState) {
+    return;
+  }
+  state.dragAnimation = {
+    from: state.dragState.previewOffset || 0,
+    startAt: Date.now(),
+    duration: 180
+  };
+}
+
+function updateDragAnimation() {
+  if (!state.dragAnimation || !state.dragState) {
+    return;
+  }
+  const elapsed = Date.now() - state.dragAnimation.startAt;
+  const t = Math.min(1, elapsed / state.dragAnimation.duration);
+  const eased = 1 - Math.pow(1 - t, 3);
+  const from = state.dragAnimation.from;
+  state.dragState.previewOffset = from + (0 - from) * eased;
+  if (t >= 1) {
+    state.dragAnimation = null;
+    state.dragState = null;
+  }
 }
 
 function ensurePlayable() {
