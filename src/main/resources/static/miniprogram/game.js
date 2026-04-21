@@ -381,6 +381,10 @@ function handleTouchEnd(e) {
     startDragReturnAnimation();
     return;
   }
+  if (!plan.autoPair) {
+    startDragReturnAnimation();
+    return;
+  }
   state.dragState = null;
   state.dragAnimation = null;
   handleDrag(drag, plan);
@@ -473,7 +477,7 @@ function handleDrag(drag, plan) {
   const match = boardUtils.findLinePair(previewBoard, moved.row, moved.col, plan.axis);
   if (match && match.type === moved.type) {
     boardUtils.shiftLine(state.board, drag.row, drag.col, plan.axis, plan.step);
-    removePair(moved, match);
+    removePair({ key: drag.key }, { key: match.key });
     return;
   }
   startDragReturnAnimation();
@@ -507,11 +511,13 @@ function buildDragPlan(drag) {
   const distance = Math.min(Math.abs(primaryDelta), state.tileSize);
   const previewOffset = distance * step;
   const emptyIndex = boardUtils.findFirstEmptyInDirection(state.board, drag.row, drag.col, step, axis);
+  const autoPair = detectDragPair(drag, axis, step);
   return {
     axis,
     step,
     previewOffset,
-    emptyIndex
+    emptyIndex,
+    autoPair
   };
 }
 
@@ -524,6 +530,23 @@ function updateDragPreview() {
   state.dragState.step = plan.step;
   state.dragState.previewOffset = plan.previewOffset;
   state.dragState.emptyIndex = plan.emptyIndex;
+  state.dragState.autoPair = plan.autoPair;
+}
+
+function detectDragPair(drag, axis, step) {
+  const previewBoard = boardUtils.cloneBoard(state.board);
+  const moved = boardUtils.shiftLine(previewBoard, drag.row, drag.col, axis, step);
+  if (!moved) {
+    return null;
+  }
+  const match = boardUtils.findLinePair(previewBoard, moved.row, moved.col, axis);
+  if (!match || match.type !== moved.type) {
+    return null;
+  }
+  return {
+    key: moved.key,
+    pairKey: match.key
+  };
 }
 
 function getTileOffset(tile) {
