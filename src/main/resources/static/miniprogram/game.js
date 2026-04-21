@@ -437,14 +437,9 @@ function handleTap(row, col, key) {
     return;
   }
 
-  if (state.selectedKey === key) {
-    state.selectedKey = '';
-    return;
-  }
-
-  const selected = findTileByKey(state.selectedKey);
-  if (selected && selected.type === tile.type && isAdjacent(selected.row, selected.col, row, col)) {
-    removePair(selected, tile);
+  const pair = boardUtils.findTapPair(state.board, row, col);
+  if (pair) {
+    removePair(tile, pair);
     return;
   }
 
