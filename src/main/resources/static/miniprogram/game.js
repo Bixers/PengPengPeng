@@ -331,7 +331,6 @@ function handleTouchStart(e) {
     dy: 0,
     moved: false
   };
-  state.selectedKey = hit.tile.key;
   state.hintKeys = [];
 }
 
