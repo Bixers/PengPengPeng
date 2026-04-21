@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/game/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "碰碰砰",
+    "navigationBarBackgroundColor": "#0b5c58",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0b5c58",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

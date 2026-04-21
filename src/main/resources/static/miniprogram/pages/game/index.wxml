@@ -1,0 +1,67 @@
+<view class="page">
+  <view class="topbar">
+    <view class="top-left">
+      <text class="back-btn" bindtap="goBack">←</text>
+      <view class="meta">
+        <text class="meta-label">玩家</text>
+        <text class="meta-value">{{nickname}}</text>
+      </view>
+    </view>
+    <view class="clock glass-card">
+      <text class="clock-icon">⏰</text>
+      <text class="clock-value">{{timeText}}</text>
+    </view>
+  </view>
+
+  <view class="status glass-card">
+    <view class="status-item">
+      <text class="status-label">关卡</text>
+      <text class="status-value">{{levelLabel}}</text>
+    </view>
+    <view class="status-item">
+      <text class="status-label">分数</text>
+      <text class="status-value">{{score}}</text>
+    </view>
+    <view class="status-item">
+      <text class="status-label">剩余</text>
+      <text class="status-value">{{remainingTiles}}</text>
+    </view>
+  </view>
+
+  <view class="board-shell">
+    <view class="board-frame glass-card" style="width: {{boardWidth}}px; height: {{boardHeight}}px;">
+      <view
+        wx:for="{{tiles}}"
+        wx:key="key"
+        class="tile {{item.selected ? 'selected' : ''}} {{item.hinted ? 'hinted' : ''}}"
+        data-row="{{item.row}}"
+        data-col="{{item.col}}"
+        data-key="{{item.key}}"
+        bindtouchstart="onTileTouchStart"
+        bindtouchmove="onTileTouchMove"
+        bindtouchend="onTileTouchEnd"
+        style="{{item.style}}"
+      >
+        <text class="tile-text {{item.typeClass}}">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="ghost-btn action-btn" bindtap="onShuffle">刷新</button>
+    <button class="ghost-btn action-btn" bindtap="onEliminate">消除</button>
+    <button class="ghost-btn action-btn" bindtap="onHint">提示</button>
+  </view>
+
+  <view wx:if="{{resultVisible}}" class="result-mask">
+    <view class="result-card glass-card">
+      <view class="result-title">{{resultTitle}}</view>
+      <view class="result-desc">{{resultDesc}}</view>
+      <view class="result-score">得分 {{score}}</view>
+      <view class="result-buttons">
+        <button class="primary-btn result-btn" bindtap="restartGame">再来一局</button>
+        <button class="ghost-btn result-btn" bindtap="goHome">返回首页</button>
+      </view>
+    </view>
+  </view>
+</view>

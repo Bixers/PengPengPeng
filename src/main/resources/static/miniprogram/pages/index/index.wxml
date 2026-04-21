@@ -1,0 +1,30 @@
+<view class="page">
+  <view class="hero glass-card">
+    <view class="badge">12 分钟限时 · 两关麻将</view>
+    <view class="title">碰碰砰</view>
+    <view class="subtitle">相同麻将相邻即可消除，拖动还能推动行列。</view>
+    <view class="rule-list">
+      <view class="rule-item">第 1 关 4 x 4</view>
+      <view class="rule-item">第 2 关 10 x 12</view>
+      <view class="rule-item">无可消除时自动洗牌</view>
+    </view>
+  </view>
+
+  <view class="glass-card panel">
+    <view class="panel-title">开始游戏</view>
+    <input class="nickname-input" placeholder="输入昵称" value="{{nickname}}" bindinput="onNicknameInput" maxlength="16" />
+    <button class="primary-btn start-btn" bindtap="startGame">开始碰撞</button>
+  </view>
+
+  <view class="glass-card panel">
+    <view class="panel-title">排行榜</view>
+    <view wx:if="{{loading}}" class="hint">正在加载数据...</view>
+    <view wx:elif="{{rankings.length === 0}}" class="hint">暂无记录，先来一局吧。</view>
+    <view wx:else class="rank-list">
+      <view class="rank-item" wx:for="{{rankings}}" wx:key="id">
+        <text class="rank-name">{{index + 1}}. {{item.nickname}}</text>
+        <text class="rank-score">{{item.score}}</text>
+      </view>
+    </view>
+  </view>
+</view>

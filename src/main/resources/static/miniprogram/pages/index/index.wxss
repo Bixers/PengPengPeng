@@ -1,0 +1,96 @@
+.page {
+  padding: 34rpx 28rpx 60rpx;
+}
+
+.hero {
+  padding: 34rpx 28rpx;
+  border-radius: 34rpx;
+  margin-bottom: 22rpx;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+}
+
+.title {
+  margin-top: 18rpx;
+  font-size: 54rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+}
+
+.subtitle {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: rgba(236, 255, 249, 0.82);
+  line-height: 1.7;
+}
+
+.rule-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 22rpx;
+}
+
+.rule-item {
+  padding: 12rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 24rpx;
+}
+
+.panel {
+  padding: 24rpx;
+  border-radius: 28rpx;
+  margin-top: 18rpx;
+}
+
+.panel-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 18rpx;
+}
+
+.nickname-input {
+  height: 84rpx;
+  padding: 0 24rpx;
+  border-radius: 22rpx;
+  background: rgba(255, 255, 255, 0.08);
+  color: #effff9;
+}
+
+.start-btn {
+  margin-top: 20rpx;
+  border-radius: 22rpx;
+  font-size: 30rpx;
+}
+
+.hint {
+  color: rgba(236, 255, 249, 0.72);
+  font-size: 24rpx;
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.rank-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 18rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rank-name,
+.rank-score {
+  font-size: 24rpx;
+}
